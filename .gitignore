@@ -1,3 +1,9 @@
+MUJOCO_LOG.TXT
+cassie/cassiemujoco/mjkey.txt
+cassie/cassiemujoco/mjkeyold.txt
+cassie/cassiemujoco/mjpro150/
+cassie/pickled
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
