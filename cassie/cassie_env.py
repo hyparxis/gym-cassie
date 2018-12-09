@@ -11,7 +11,7 @@ import random
 #import pickle
 
 class CassieEnv:
-    def __init__(self, traj_path, simrate=60, clock_based=False):
+    def __init__(self, traj, simrate=60, clock_based=False):
         self.sim = CassieSim()
         self.vis = None
 
@@ -23,6 +23,14 @@ class CassieEnv:
         else:
             self.observation_space = np.zeros(80)
             self.action_space      = np.zeros(10)
+
+
+        dirname = os.path.dirname(__file__)
+        if traj == "walking":
+            traj_path = os.path.join(dirname, "trajectory", "stepdata.bin")
+
+        elif traj == "stand-in-place":
+            raise NotImplementedError
 
         self.trajectory = CassieTrajectory(traj_path)
 
