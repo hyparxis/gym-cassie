@@ -64,7 +64,7 @@ class CassieEnv:
     def step_simulation(self, action):
 
         # maybe make ref traj only send relevant idxs?
-        ref_pos, ref_vel = self.get_ref_state(self.phase)
+        ref_pos, ref_vel = self.get_ref_state(self.phase + 1)
 
         target = action + ref_pos[self.pos_idx]
 
@@ -191,7 +191,7 @@ class CassieEnv:
         if phase is None:
             phase = self.phase
 
-        if phase >= self.phaselen:
+        if phase > self.phaselen:
             phase = 0
 
         pos = np.copy(self.trajectory.qpos[phase * self.simrate])
@@ -250,7 +250,6 @@ class CassieEnv:
         # [17] Right shin                       (Joint [3])
         # [18] Right tarsus                     (Joint [4])
         # [19] Right foot            (Motor [9], Joint [5])
-
         pos_index = np.array([1,2,3,4,5,6,7,8,9,14,15,16,20,21,22,23,28,29,30,34])
 
         # [ 0] Pelvis x
