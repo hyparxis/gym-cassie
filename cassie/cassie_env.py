@@ -24,7 +24,6 @@ class CassieEnv:
             self.observation_space = np.zeros(80)
             self.action_space      = np.zeros(10)
 
-
         dirname = os.path.dirname(__file__)
         if traj == "walking":
             traj_path = os.path.join(dirname, "trajectory", "stepdata.bin")
@@ -125,6 +124,8 @@ class CassieEnv:
 
         return self.get_full_state()
 
+    # NOTE: this reward is slightly different from the one in Xie et al
+    # see notes for details
     def compute_reward(self):
         qpos = np.copy(self.sim.qpos())
 
@@ -151,18 +152,20 @@ class CassieEnv:
             target = ref_pos[j]
             actual = qpos[j]
 
+            # NOTE: in Xie et al y target is 0
+
             com_error += (target - actual) ** 2
         
         # COM orientation: qx, qy, qz
         for j in [4, 5, 6]:
-            target = ref_pos[j]
+            target = ref_pos[j] # NOTE: in Xie et al orientation target is 0
             actual = qpos[j]
 
             orientation_error += (target - actual) ** 2
 
         # left and right shin springs
-        for i in [15, 28]:
-            target = ref_pos[i]
+        for i in [15, 29]:
+            target = ref_pos[i] # NOTE: in Xie et al spring target is 0
             actual = qpos[i]
 
             spring_error += 1000 * (target - actual) ** 2      
@@ -171,7 +174,6 @@ class CassieEnv:
                  0.3 * np.exp(-com_error) +         \
                  0.1 * np.exp(-orientation_error) + \
                  0.1 * np.exp(-spring_error)
-
 
         # orientation error does not look informative
         # maybe because it's comparing euclidean distance on quaternions
