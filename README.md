@@ -7,6 +7,14 @@ An OpenAI Gym style reinforcement learning interface for Agility Robotics' biped
 2.  Place ```libcassiemujoco.so``` in the ```cassie/cassiemujoco``` folder (see https://github.com/osudrl/cassie-mujoco-sim for info on compiling libcassiemujoco.so).
 3.  Run ```$ pip install -e .``` in root folder (the one that contains setup.py). 
 
+To test installation:
+```
+$ python3
+> from cassie import CassieEnv
+> env = CassieEnv("walking")
+> env.render()
+```
+
 # TODO:
 
 Add the OpenAI gym environment registration code so that the environment can be created with gym.make().
