@@ -52,8 +52,6 @@ class CassieEnv:
         # badly can cause assymetrical/bad gaits
         self.phaselen = floor(len(self.trajectory) / self.simrate) - 1
 
-        self.time_limit = 400
-
         # see include/cassiemujoco.h for meaning of these indices
         self.pos_idx = [7, 8, 9, 14, 20, 21, 22, 23, 28, 34]
         self.vel_idx = [6, 7, 8, 12, 18, 19, 20, 21, 25, 31]
@@ -102,7 +100,7 @@ class CassieEnv:
             self.counter += 1
 
         # Early termination
-        done = not(height > 0.4 and height < 3.0) or self.time >= self.time_limit
+        done = not(height > 0.4 and height < 3.0)
 
         reward = self.compute_reward()
 
@@ -279,8 +277,8 @@ class CassieEnv:
         ext_state = np.concatenate([ref_pos[pos_index], ref_vel[vel_index]])
 
         if self.clock_based:
-            qpos[pos_idx] -= ref_pos[pos_idx]
-            qvel[vel_idx] -= ref_vel[vel_idx]
+            qpos[self.pos_idx] -= ref_pos[self.pos_idx]
+            qvel[self.vel_idx] -= ref_vel[self.vel_idx]
 
             clock = [np.sin(2 * np.pi *  self.phase / self.phaselen),
                      np.cos(2 * np.pi *  self.phase / self.phaselen)]
