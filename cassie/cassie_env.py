@@ -33,7 +33,7 @@ class CassieEnv:
 
         self.trajectory = CassieTrajectory(traj_path)
 
-        self.P = np.array([100,  100,  88,  96,  50])
+        self.P = np.array([100,  100,  88,  96,  50]) 
         self.D = np.array([10.0, 10.0, 8.0, 9.6, 5.0])
 
         self.u = pd_in_t()
@@ -122,6 +122,19 @@ class CassieEnv:
 
         return self.get_full_state()
 
+    # used for plotting against the reference trajectory
+    def reset_for_test(self):
+        self.phase = 0
+        self.time = 0
+        self.counter = 0
+
+        qpos, qvel = self.get_ref_state(self.phase)
+
+        self.sim.set_qpos(qpos)
+        self.sim.set_qvel(qvel)
+
+        return self.get_full_state()
+
     # NOTE: this reward is slightly different from the one in Xie et al
     # see notes for details
     def compute_reward(self):
@@ -197,7 +210,7 @@ class CassieEnv:
         pos = np.copy(self.trajectory.qpos[phase * self.simrate])
 
         # this is just setting the x to where it "should" be given the number
-        # of cycles?
+        # of cycles
         pos[0] += (self.trajectory.qpos[-1, 0] - self.trajectory.qpos[0, 0]) * self.counter
         
         # ^ should only matter for COM error calculation,
@@ -282,7 +295,8 @@ class CassieEnv:
 
             clock = [np.sin(2 * np.pi *  self.phase / self.phaselen),
                      np.cos(2 * np.pi *  self.phase / self.phaselen)]
-
+            
+            ext_state = clock
 
         return np.concatenate([qpos[pos_index], 
                                qvel[vel_index], 
