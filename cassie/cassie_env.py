@@ -134,6 +134,16 @@ class CassieEnv:
         self.sim.set_qvel(qvel)
 
         return self.get_full_state()
+    
+    def set_joint_state(self, jpos):
+        joint_idx = [7, 8, 9, 14, 20,
+                     21, 22, 23, 28, 30]
+
+        qpos = np.copy(self.sim.qpos())
+
+        qpos[joint_idx] = jpos
+
+        self.sim.set_qpos(qpos)
 
     # NOTE: this reward is slightly different from the one in Xie et al
     # see notes for details
