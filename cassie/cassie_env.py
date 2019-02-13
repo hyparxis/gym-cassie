@@ -135,15 +135,37 @@ class CassieEnv:
 
         return self.get_full_state()
     
-    def set_joint_state(self, jpos):
+    def set_joint_pos(self, jpos, fbpos=None, iters=5000):
+        """
+        Kind of hackish. 
+        This takes a floating base position and some joint positions
+        and abuses the MuJoCo solver to get the constrained forward
+        kinematics. 
+
+        There might be a better way to do this, e.g. using mj_kinematics
+        """
+
+        # actuated joint indices
         joint_idx = [7, 8, 9, 14, 20,
-                     21, 22, 23, 28, 30]
+                     21, 22, 23, 28, 34]
 
-        qpos = np.copy(self.sim.qpos())
+        # floating base indices
+        fb_idx = [0, 1, 2, 3, 4, 5, 6]
 
-        qpos[joint_idx] = jpos
+        for _ in range(iters):
+            qpos = np.copy(self.sim.qpos())
+            qvel = np.copy(self.sim.qvel())
 
-        self.sim.set_qpos(qpos)
+            qpos[joint_idx] = jpos
+
+            if fbpos is not None:
+                qpos[fb_idx] = fbpos
+
+            self.sim.set_qpos(qpos)
+            self.sim.set_qvel(0 * qvel)
+
+            self.sim.step_pd(pd_in_t())
+
 
     # NOTE: this reward is slightly different from the one in Xie et al
     # see notes for details
@@ -297,16 +319,17 @@ class CassieEnv:
         # [19] Right foot            (Motor [9], Joint [5])
         vel_index = np.array([0,1,2,3,4,5,6,7,8,12,13,14,18,19,20,21,25,26,27,31])
 
-        ext_state = np.concatenate([ref_pos[pos_index], ref_vel[vel_index]])
-
         if self.clock_based:
-            qpos[self.pos_idx] -= ref_pos[self.pos_idx]
-            qvel[self.vel_idx] -= ref_vel[self.vel_idx]
+            #qpos[self.pos_idx] -= ref_pos[self.pos_idx]
+            #qvel[self.vel_idx] -= ref_vel[self.vel_idx]
 
             clock = [np.sin(2 * np.pi *  self.phase / self.phaselen),
                      np.cos(2 * np.pi *  self.phase / self.phaselen)]
             
             ext_state = clock
+
+        else:
+            ext_state = np.concatenate([ref_pos[pos_index], ref_vel[vel_index]])
 
         return np.concatenate([qpos[pos_index], 
                                qvel[vel_index], 
