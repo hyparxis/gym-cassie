@@ -8,136 +8,49 @@ import numpy as np
 import os
 import random
 
-#import pickle
-class Space(object):
-    """Defines the observation and action spaces, so you can write generic
-    code that applies to any Env. For example, you can choose a random
-    action.
-    """
-    def __init__(self, shape=None, dtype=None):
-        import numpy as np # takes about 300-400ms to import, so we load lazily
-        self.shape = None if shape is None else tuple(shape)
-        self.dtype = None if dtype is None else np.dtype(dtype)
+import pickle
 
-    def sample(self):
-        """
-        Uniformly randomly sample a random element of this space
-        """
-        raise NotImplementedError
+class CassieIKTrajectory:
+    def __init__(self, filepath):
+        with open(filepath, "rb") as f:
+            trajectory = pickle.load(f)
 
-    def seed(self, seed):
-        """Set the seed for this space's pseudo-random number generator. """
-        raise NotImplementedError
+        self.qpos = np.copy(trajectory["qpos"])
+        self.qvel = np.copy(trajectory["qvel"])
+        #self.foot =
+    
+    def __len__(self):
+        return len(self.qpos)
 
-    def contains(self, x):
-        """
-        Return boolean specifying if x is a valid
-        member of this space
-        """
-        raise NotImplementedError
-
-    def __contains__(self, x):
-        return self.contains(x)
-
-    def to_jsonable(self, sample_n):
-        """Convert a batch of samples from this space to a JSONable data type."""
-        # By default, assume identity is JSONable
-        return sample_n
-
-    def from_jsonable(self, sample_n):
-        """Convert a JSONable data type to a batch of samples from this space."""
-        # By default, assume identity is JSONable
-        return sample_n
-
-
-class Box(Space):
-    """
-    A box in R^n.
-    I.e., each coordinate is bounded.
-    Example usage:
-    self.action_space = spaces.Box(low=-10, high=10, shape=(1,))
-    """
-    def __init__(self, low=None, high=None, shape=None, dtype=None):
-        """
-        Two kinds of valid input:
-            Box(low=-1.0, high=1.0, shape=(3,4)) # low and high are scalars, and shape is provided
-            Box(low=np.array([-1.0,-2.0]), high=np.array([2.0,4.0])) # low and high are arrays of the same shape
-        """
-        if shape is None:
-            assert low.shape == high.shape
-            shape = low.shape
-        else:
-            assert np.isscalar(low) and np.isscalar(high)
-            low = low + np.zeros(shape)
-            high = high + np.zeros(shape)
-        if dtype is None:  # Autodetect type
-            if (high == 255).all():
-                dtype = np.uint8
-            else:
-                dtype = np.float32
-            #logger.warn("gym.spaces.Box autodetected dtype as {}. Please provide explicit dtype.".format(dtype))
-        self.low = low.astype(dtype)
-        self.high = high.astype(dtype)
-        super(Box, self).__init__(shape, dtype)
-        self.np_random = np.random.RandomState()
-
-    def seed(self, seed):
-        self.np_random.seed(seed)
-
-    def sample(self):
-        high = self.high if self.dtype.kind == 'f' else self.high.astype('int64') + 1
-        return self.np_random.uniform(low=self.low, high=high, size=self.low.shape).astype(self.dtype)
-
-    def contains(self, x):
-        return x.shape == self.shape and (x >= self.low).all() and (x <= self.high).all()
-
-    def to_jsonable(self, sample_n):
-        return np.array(sample_n).tolist()
-
-    def from_jsonable(self, sample_n):
-        return [np.asarray(sample) for sample in sample_n]
-
-    def __repr__(self):
-        return "Box" + str(self.shape)
-
-    def __eq__(self, other):
-        return np.allclose(self.low, other.low) and np.allclose(self.high, other.high)
-
-class CassieEnv:
-    def __init__(self, traj, simrate=60, clock_based=False):
+class CassieIKEnv:
+    def __init__(self, traj="stepping", simrate=60, clock_based=False):
         self.sim = CassieSim()
         self.vis = None
 
         self.clock_based = clock_based
 
         if clock_based:
-            self.observation_space = Box(low=-np.inf, high=np.inf, shape=(48,))#np.zeros(42)
-            self.action_space      = Box(low=-1, high=1, shape=(10,))#
+            self.observation_space = np.zeros(48)
+            self.action_space      = np.zeros(10)
         else:
-            self.observation_space = Box(low=-np.inf, high=np.inf, shape=(86,))#
-            self.action_space      = Box(low=-1, high=1, shape=(10,))#
+            self.observation_space = np.zeros(86)
+            self.action_space      = np.zeros(10)
 
-        self._max_episode_steps = 300
-
-        # TODO: make "CassieEnv" a factory method that creates different
-        # cassie classes via string?
+        # 1767 - 2767
 
         dirname = os.path.dirname(__file__)
-        if traj == "walking":
-            traj_path = os.path.join(dirname, "trajectory", "stepdata.bin")
+        if traj == "stepping":
+            traj_path = os.path.join(dirname, "trajectory", "stepping_traj.pkl")
 
-        elif traj == "stepping":
-            traj_path = os.path.join(dirname, "trajectory", "more-poses-trial.bin")
+        elif traj == "stand-in-place":
+            raise NotImplementedError
 
-        self.trajectory = CassieTrajectory(traj_path)
+        self.trajectory = CassieIKTrajectory(traj_path)
 
         self.P = np.array([100,  100,  88,  96,  50]) 
         self.D = np.array([10.0, 10.0, 8.0, 9.6, 5.0])
 
         self.u = pd_in_t()
-
-        # TODO: should probably initialize this to current state
-        self.cassie_state = state_out_t()
 
         self.simrate = simrate # simulate X mujoco steps with same pd target
                                # 60 brings simulation from 2000Hz to roughly 30Hz
@@ -151,12 +64,15 @@ class CassieEnv:
         # should be floor(len(traj) / simrate) - 1
         # should be VERY cautious here because wrapping around trajectory
         # badly can cause assymetrical/bad gaits
-        self.phaselen = floor(len(self.trajectory) / self.simrate) - 1
+        self.phaselen = floor(len(self.trajectory) / self.simrate) #-1
 
         # see include/cassiemujoco.h for meaning of these indices
         self.pos_idx = [7, 8, 9, 14, 20, 21, 22, 23, 28, 34]
         self.vel_idx = [6, 7, 8, 12, 18, 19, 20, 21, 25, 31]
     
+        # Output of Cassie's state estimation code
+        self.cassie_state = state_out_t()
+
         #self.name = 
 
     def step_simulation(self, action):
@@ -221,8 +137,6 @@ class CassieEnv:
         self.sim.set_qpos(qpos)
         self.sim.set_qvel(qvel)
 
-        self.cassie_state = self.sim.step_pd(self.u)
-
         return self.get_full_state()
 
     # used for plotting against the reference trajectory
@@ -235,8 +149,6 @@ class CassieEnv:
 
         self.sim.set_qpos(qpos)
         self.sim.set_qvel(qvel)
-
-        self.cassie_state = self.sim.step_pd(self.u)
 
         return self.get_full_state()
     
@@ -286,6 +198,8 @@ class CassieEnv:
         # weight = [0, 0, 0.25, 0.25, 0, 
         #           0, 0, 0.25, 0.25, 0]
 
+        #weight = [.1] * 10
+
         joint_error       = 0
         com_error         = 0
         orientation_error = 0
@@ -325,6 +239,8 @@ class CassieEnv:
                  0.3 * np.exp(-com_error) +         \
                  0.1 * np.exp(-orientation_error) + \
                  0.1 * np.exp(-spring_error)
+
+        #reward = np.exp(-joint_error)
 
         # orientation error does not look informative
         # maybe because it's comparing euclidean distance on quaternions
@@ -439,6 +355,7 @@ class CassieEnv:
         else:
             ext_state = np.concatenate([ref_pos[pos_index], ref_vel[vel_index]])
 
+
         robot_state = np.concatenate([
             [self.cassie_state.pelvis.position[2] - self.cassie_state.terrain.height], # pelvis height
             self.cassie_state.pelvis.orientation[:],                                 # pelvis orientation
@@ -457,9 +374,13 @@ class CassieEnv:
         return np.concatenate([robot_state,  
                                ext_state])
 
+
         # return np.concatenate([qpos[pos_index], 
         #                        qvel[vel_index], 
         #                        ext_state])
+
+    def reset_for_normalization(self):
+        return self.reset()
 
     def render(self):
         if self.vis is None:
