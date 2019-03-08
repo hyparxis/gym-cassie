@@ -1,5 +1,5 @@
 # cassie-rl
-An OpenAI Gym style reinforcement learning interface for Agility Robotics' biped robot Cassie 
+An OpenAI Gym style reinforcement learning interface for Agility Robotics' biped robot Cassie. CassieEnv is a reimplementation of: https://arxiv.org/abs/1803.05580.
 
 # Installation
 
