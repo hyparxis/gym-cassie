@@ -15,6 +15,8 @@ class CassieEnv:
         self.sim = CassieSim()
         self.vis = None
 
+        # NOTE: Xie et al uses full reference trajectory info
+        # (i.e. clock_based=False)
         self.clock_based = clock_based
 
         if clock_based:
@@ -56,19 +58,13 @@ class CassieEnv:
         self.pos_idx = [7, 8, 9, 14, 20, 21, 22, 23, 28, 34]
         self.vel_idx = [6, 7, 8, 12, 18, 19, 20, 21, 25, 31]
     
-        #self.name = 
-
     def step_simulation(self, action):
-
-        # maybe make ref traj only send relevant idxs?
         ref_pos, ref_vel = self.get_ref_state(self.phase + 1)
 
         target = action + ref_pos[self.pos_idx]
 
         self.u = pd_in_t()
         for i in range(5):
-            # TODO: move setting gains out of the loop?
-            # maybe write a wrapper for pd_in_t ?
             self.u.leftLeg.motorPd.pGain[i]  = self.P[i]
             self.u.rightLeg.motorPd.pGain[i] = self.P[i]
 
@@ -174,8 +170,6 @@ class CassieEnv:
 
         ref_pos, ref_vel = self.get_ref_state(self.phase)
 
-        # TODO: should be variable; where do these come from?
-        # TODO: see magnitude of state variables to gauge contribution to reward
         weight = [0.15, 0.15, 0.1, 0.05, 0.05, 0.15, 0.15, 0.1, 0.05, 0.05]
 
         joint_error       = 0
@@ -218,17 +212,6 @@ class CassieEnv:
                  0.1 * np.exp(-orientation_error) + \
                  0.1 * np.exp(-spring_error)
 
-        # orientation error does not look informative
-        # maybe because it's comparing euclidean distance on quaternions
-        # print("reward: {8}\njoint:\t{0:.2f}, % = {1:.2f}\ncom:\t{2:.2f}, % = {3:.2f}\norient:\t{4:.2f}, % = {5:.2f}\nspring:\t{6:.2f}, % = {7:.2f}\n\n".format(
-        #             0.5 * np.exp(-joint_error),       0.5 * np.exp(-joint_error) / reward * 100,
-        #             0.3 * np.exp(-com_error),         0.3 * np.exp(-com_error) / reward * 100,
-        #             0.1 * np.exp(-orientation_error), 0.1 * np.exp(-orientation_error) / reward * 100,
-        #             0.1 * np.exp(-spring_error),      0.1 * np.exp(-spring_error) / reward * 100,
-        #             reward
-        #         )
-        #     )  
-
         return reward
 
     # get the corresponding state from the reference trajectory for the current phase
@@ -248,8 +231,7 @@ class CassieEnv:
         # ^ should only matter for COM error calculation,
         # gets dropped out of state variable for input reasons
 
-        # setting lateral distance target to 0?
-        # regardless of reference trajectory?
+        # setting lateral distance target to 0
         pos[1] = 0
 
         vel = np.copy(self.trajectory.qvel[phase * self.simrate])
@@ -262,17 +244,13 @@ class CassieEnv:
 
         ref_pos, ref_vel = self.get_ref_state(self.phase + 1)
 
-        # TODO: maybe convert to set subtraction for clarity
-        # {i for i in range(35)} - 
-        # {0, 10, 11, 12, 13, 17, 18, 19, 24, 25, 26, 27, 31, 32, 33}
-
         # this is everything except pelvis x and qw, achilles rod quaternions, 
         # and heel spring/foot crank/plantar rod angles
-        # note: x is forward dist, y is lateral dist, z is height
+        # NOTE: x is forward dist, y is lateral dist, z is height
 
         # makes sense to always exclude x because it is in global coordinates and
-        # irrelevant to phase-based control. Z is inherently invariant to
-        # trajectory despite being global coord. Y is only invariant to straight
+        # irrelevant to phase-based control. Z is inherently invariant to (flat)
+        # trajectories despite being global coord. Y is only invariant to straight
         # line trajectories.
 
         # [ 0] Pelvis y
