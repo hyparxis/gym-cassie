@@ -23,7 +23,7 @@ class CassieIKTrajectory:
         return len(self.qpos)
 
 class CassieIKEnv:
-    def __init__(self, traj="stepping", simrate=60, clock_based=False):
+    def __init__(self, traj="stepping2", simrate=60, clock_based=True):
         self.sim = CassieSim()
         self.vis = None
 
@@ -41,6 +41,9 @@ class CassieIKEnv:
         dirname = os.path.dirname(__file__)
         if traj == "stepping":
             traj_path = os.path.join(dirname, "trajectory", "stepping_traj.pkl")
+
+        elif traj == "stepping2":
+            traj_path = os.path.join(dirname, "trajectory", "spline_stepping_traj.pkl")
 
         elif traj == "stand-in-place":
             raise NotImplementedError
@@ -195,8 +198,8 @@ class CassieIKEnv:
         # TODO: see magnitude of state variables to gauge contribution to reward
         weight = [0.15, 0.15, 0.1, 0.05, 0.05, 0.15, 0.15, 0.1, 0.05, 0.05]
 
-        # weight = [0, 0, 0.25, 0.25, 0, 
-        #           0, 0, 0.25, 0.25, 0]
+        # weight = [0.05, 0.05, 0.25, 0.25, 0.05, 
+        #           0.05, 0.05, 0.25, 0.25, 0.05]
 
         #weight = [.1] * 10
 
