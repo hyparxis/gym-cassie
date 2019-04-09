@@ -8,10 +8,15 @@ import numpy as np
 import os
 import random
 
+import gym
+from gym import spaces
 #import pickle
 
-class CassieEnv:
+class CassieEnv(gym.Env):
+    metadata = {'render.modes': ['human']}
+
     def __init__(self, traj, simrate=60, clock_based=False):
+
         self.sim = CassieSim()
         self.vis = None
 
@@ -20,11 +25,11 @@ class CassieEnv:
         self.clock_based = clock_based
 
         if clock_based:
-            self.observation_space = np.zeros(42)
-            self.action_space      = np.zeros(10)
+            self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(42,))
+            self.action_space      = spaces.Box(low=-np.inf, high=np.inf, shape=(10,))
         else:
-            self.observation_space = np.zeros(80)
-            self.action_space      = np.zeros(10)
+            self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(80,))
+            self.action_space      = spaces.Box(low=-np.inf, high=np.inf, shape=(10,))
 
         dirname = os.path.dirname(__file__)
         if traj == "walking":
@@ -57,6 +62,15 @@ class CassieEnv:
         # see include/cassiemujoco.h for meaning of these indices
         self.pos_idx = [7, 8, 9, 14, 20, 21, 22, 23, 28, 34]
         self.vel_idx = [6, 7, 8, 12, 18, 19, 20, 21, 25, 31]
+
+    @property
+    def dt(self):
+        return 1 / 2000 * self.simrate
+
+    def close(self):
+        if self.vis is not None:
+            del self.vis # overloaded to call cassie_vis_free
+            self.vis = None
     
     def step_simulation(self, action):
         ref_pos, ref_vel = self.get_ref_state(self.phase + 1)
