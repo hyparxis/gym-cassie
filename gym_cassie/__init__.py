@@ -6,3 +6,8 @@ register(
     entry_point='gym_cassie.envs:CassieEnv',
 )
 
+register(
+    id='Cassie-walking-v0',
+    entry_point='gym_cassie.envs:CassieEnv',
+    kwargs={'traj': 'walking'}
+)
