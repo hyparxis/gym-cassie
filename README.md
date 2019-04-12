@@ -14,7 +14,3 @@ $ python3
 > env = CassieEnv("walking")
 > env.render()
 ```
-
-# TODO:
-
-Add the OpenAI gym environment registration code so that the environment can be created with gym.make().
