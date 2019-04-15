@@ -12,7 +12,7 @@ import gym
 from gym import spaces
 #import pickle
 
-class CassieEnv(gym.Env):
+class CassieMimicEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, traj, simrate=60, clock_based=False):

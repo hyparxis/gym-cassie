@@ -7,7 +7,12 @@ register(
 )
 
 register(
-    id='Cassie-walking-v0',
-    entry_point='gym_cassie.envs:CassieEnv',
+    id='Cassie-mimic-v0',
+    entry_point='gym_cassie.envs:CassieMimicEnv',
+)
+
+register(
+    id='Cassie-mimic-walking-v0',
+    entry_point='gym_cassie.envs:CassieMimicEnv',
     kwargs={'traj': 'walking'}
 )
