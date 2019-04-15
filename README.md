@@ -25,9 +25,9 @@ $ python3
 ```
 
 # Environments
-* Cassie-v0: A "go forward" environment meant to be a close match to OpenAI gym's Humanoid environment in terms of state and reward.
+* **Cassie-v0**: A "go forward" environment meant to be a close match to OpenAI gym's Humanoid environment in terms of state and reward.
 
-* Cassie-mimic-v0: A faithful reimplementation of the environment described in [Feedback Control For Cassie With Deep Reinforcement Learning](https://arxiv.org/abs/1803.05580). Also see [DeepMimic](https://arxiv.org/abs/1804.02717).
+* **Cassie-mimic-v0**: A faithful reimplementation of the environment described in [Feedback Control For Cassie With Deep Reinforcement Learning](https://arxiv.org/abs/1803.05580). Also see [DeepMimic](https://arxiv.org/abs/1804.02717).
 
 # TODO
 * Add the option to use the Cassie state estimator output as the network input (this would allow policies to be run on the actual robot).
