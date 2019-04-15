@@ -10,8 +10,8 @@ An OpenAI Gym reinforcement learning interface for Agility Robotics' biped robot
 To test installation:
 ```
 $ python3
-> from gym_cassie import CassieEnv
-> env = CassieEnv("walking")
+> from gym_cassie import CassieMimicEnv
+> env = CassieMimicEnv("walking")
 > env.render()
 ```
 Alternatively:
