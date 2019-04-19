@@ -6,7 +6,7 @@ An OpenAI Gym reinforcement learning interface for Agility Robotics' biped robot
 2.  Place ```mjpro150/``` and ```mjkey.txt``` in the ```cassie/cassiemujoco``` folder (see http://www.mujoco.org/ for info on downloading MuJoCo and obtaining a license). 
 4.  Run ```$ pip install -e .``` in root folder (the one that contains setup.py). 
 
-Note: I'm currently including a binary of the Cassie MuJoCo C library in gym_cassie/cassiemujoco (see: https://github.com/osudrl/cassie-mujoco-sim). If you'd like to modify/build that binary from source, note that this repo currently uses a modified version of cassie-mujoco-sim with a foot position API. For now see my fork of the former here: https://github.com/p-morais/cassie-mujoco-sim.
+Note: I'm currently including a binary of the Cassie MuJoCo C library libcassiemujoco.so in gym_cassie/cassiemujoco (see: https://github.com/osudrl/cassie-mujoco-sim). If you'd like to modify/build that binary from source, note that this repo currently uses a modified version of cassie-mujoco-sim with a foot position API. For now see my fork of the former here: https://github.com/p-morais/cassie-mujoco-sim.
 
 To test installation:
 ```
