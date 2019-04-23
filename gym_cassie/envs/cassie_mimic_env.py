@@ -15,7 +15,7 @@ from gym import spaces
 class CassieMimicEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, traj, simrate=60, clock_based=False):
+    def __init__(self, traj="walking", simrate=60, clock_based=False):
 
         self.sim = CassieSim()
         self.vis = None
