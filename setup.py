@@ -1,6 +1,6 @@
 from setuptools import setup
 
-#REQUIRED_PACKAGES = ["torch==0.4", "gym", "numpy", "visdom"]
+REQUIRED_PACKAGES = ["gym", "numpy"]
 
 setup(name='cassierl',
       version='0.2',
@@ -9,5 +9,5 @@ setup(name='cassierl',
       author_email='autranemorais@gmail.com',
       license='MIT',
       packages=['gym_cassie'],
-      #install_requires=REQUIRED_PACKAGES
+      install_requires=REQUIRED_PACKAGES
 )
